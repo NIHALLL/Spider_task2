@@ -305,49 +305,34 @@ def query_system(vectorstore,query):
     }
 def main():
 
-    embeddings = OllamaEmbeddings(
-        model=EMBED_MODEL
-    )
+    embeddings = OllamaEmbeddings(model=EMBED_MODEL)
 
     if os.path.exists(CHROMA_DIR):
-        vectorstore = Chroma(persist_directory=CHROMA_DIR,embedding_function=embeddings)
+        vectorstore = Chroma(
+            persist_directory=CHROMA_DIR,
+            embedding_function=embeddings
+        )
     else:
-
         documents = []
 
         documents.extend(load_medquad_xml())
-
-        documents.extend(
-            load_pdf_source(
-                KNOWLEDGE_SOURCES["who"]["path"],
-                KNOWLEDGE_SOURCES["who"]["source"]
-            )
-        )
-
-        documents.extend(
-            load_pdf_source(
-                KNOWLEDGE_SOURCES["cdc"]["path"],
-                KNOWLEDGE_SOURCES["cdc"]["source"]
-            )
-        )
-
-        documents.extend(
-            load_pdf_source(
-                KNOWLEDGE_SOURCES["nice"]["path"],
-                KNOWLEDGE_SOURCES["nice"]["source"]
-            )
-        )
+        documents.extend(load_pdf_source(KNOWLEDGE_SOURCES["who"]["path"], KNOWLEDGE_SOURCES["who"]["source"]))
+        documents.extend(load_pdf_source(KNOWLEDGE_SOURCES["cdc"]["path"], KNOWLEDGE_SOURCES["cdc"]["source"]))
+        documents.extend(load_pdf_source(KNOWLEDGE_SOURCES["nice"]["path"], KNOWLEDGE_SOURCES["nice"]["source"]))
 
         vectorstore = build_vectorstore(documents)
 
-    query = input("Enter your medical question: ")
+    while True:
+        query = input("\nEnter your medical question (or type 'exit'): ")
 
-    result = query_system(vectorstore, query)
+        if query.lower() in ["exit", "quit"]:
+            print("Goodbye!")
+            break
 
-    print("\nAnswer:\n")
-    print(result["response"])
+        result = query_system(vectorstore, query)
 
-    print("\nConfidence:", result["confidence"])
-
+        print("\nAnswer:\n")
+        print(result["response"])
+        print("\nConfidence:", result["confidence"])
 if __name__ == "__main__":
     main()
